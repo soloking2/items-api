@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <title>Item Manager</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+      <div class="container">
+        <a href="index.html" class="navbar-brand">API manager</a>
+        <button type="button" class="navbar-toggler" data-toggle="toggle" data-target="navbarTarget" aria-label="Toggle Navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTarget">
+          <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <h1>Add Item</h1>
+      <form id="itemForm">
+        <div class="form-group">
+          <label for="text">Text</label>
+          <input type="text" id="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="text">Body</label>
+          <textarea rows="3" cols="80" id="body" class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+          <input type="submit" value="Submit" class="btn btn-primary">
+        </div>
+      </form>
+      <ul id="items" class="list-group"></ul>
+    </div>
+
+    <script src="jquery-3.3.1.min.js"></script>
+    <script>
+      $(document).ready(function(){
+        getItems();
+
+        //Submit event
+        $('#itemForm').on('submit', function(e){
+          e.preventDefault();
+
+          let text = $('#text').val();
+          let body = $('#body').val();
+
+          addItem(text, body);
+        });
+
+        //Delete the event
+        $('body').on('click', '.deleteLink', function(e){
+          e.preventDefault();
+
+          let id = $(this).data('id');
+          deleteItem(id);
+        });
+
+        //delete item through API
+        function deleteItem(id){
+          $.ajax({
+            method:'POST',
+            url:'http://localhost:8080/api/items/'+id,
+            data: {_method: 'DELETE'}
+          }).done(function(item){
+            alert('Item Removed');
+            location.reload();
+          });
+        }
+
+        //Insert items using API
+        function addItem(text, body){
+          $.ajax({
+            method:'POST',
+            url:'http://localhost:8080/api/items',
+            data: {text: text, body: body}
+          }).done(function(item){
+            alert('Item # '+item.id+' added');
+            location.reload();
+          });
+        }
+
+        //Get items from API
+        function getItems(){
+          $.ajax({
+            url:'http://localhost:8080/api/items'
+          }).done(function(items){
+            let output = '';
+
+            $.each(items, function(key, item){
+              output += `
+                <li class="list-group-item"><strong>${item.text}: </strong> ${item.body} <a class="deleteLink" href="#" data-id="${item.id}">Delete</a>
+                </li>
+              `
+            });
+            $('#items').append(output);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
